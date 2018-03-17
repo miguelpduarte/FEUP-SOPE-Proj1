@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include "parse_input.h"
 
-int main(int argc , char** argv) {
+int main(int argc , char* argv[] , char* envp[]) {
 
     /* Parsing Mask Testing */
     u_char mask = parse_input(argc , argv);
