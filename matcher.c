@@ -4,6 +4,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define COLOR_RESET   "\x1b[0m"
+#define COLOR_RED     "\x1b[31m"
+
 int grep_matcher(u_char mask, char * file_path, char * pattern) {
 	FILE * file = fopen(file_path, "r");
 	
@@ -27,7 +30,7 @@ int grep_matcher(u_char mask, char * file_path, char * pattern) {
 		*/
 		//Attempt to match
 		if((match = strstr(line_str, pattern)) != NULL) {
-			printf("Found match, needle value: %s", match);
+			printf("Found match, needle value: " COLOR_RED "%s" COLOR_RESET, match);
 			n_matches++;
 		}
 	}
