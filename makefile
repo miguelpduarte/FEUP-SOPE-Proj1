@@ -1,5 +1,4 @@
 CC=gcc
-CXX=g++
 RM=rm -f
 
 CFLAGS=-g -Wall -I.
@@ -18,8 +17,6 @@ all: main
 
 main: $(OBJS)
 	$(CC) $(LDFLAGS) -o bin/main.out $(OBJS) $(LDLIBS)
-$(DAY): $(OBJS)
-	$(CXX) $(LDFLAGS) -o bin/$(DAY) $(OBJS) $(LDLIBS)
 
 depend: $(DEPFILE)
 
