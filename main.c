@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "parse_input.h"
+#include "matcher.h"
 
 int main(int argc , char* argv[] , char* envp[]) {
 
@@ -14,6 +15,13 @@ int main(int argc , char* argv[] , char* envp[]) {
     printf("-c flag is active: %d\n" , C_FLAG_ACTIVATED(mask));
     printf("-w flag is active: %d\n" , W_FLAG_ACTIVATED(mask));
     printf("-r flag is active: %d\n\n" , R_FLAG_ACTIVATED(mask));
+
+	printf("Testing simple matching of 'test' in file 'test_files/test.txt')\n");
         
+	if(grep_matcher(mask, "test_files/test.txt", "test") != 0) {
+		printf("Error in grep_matcher call!\n");
+		return 1;
+	}
+
     return 0;
 }
