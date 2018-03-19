@@ -23,7 +23,7 @@ depend: $(DEPFILE)
 $(DEPFILE): $(SRCS)
 	$(RM) $(DEPFILE)
 	echo $(DEPTEXT) > $(DEPFILE)
-	$(CC) $(CPPFLAGS) -MM $^>>$(DEPFILE);
+	$(CC) $(CFLAGS) -MM $^>>$(DEPFILE);
 
 clean:
 	$(RM) $(OBJS)
