@@ -24,7 +24,8 @@ int main(int argc , char* argv[] , char* envp[]) {
 	printf("Error in grep_matcher call!\n");
 	return 1;
     }
-
+    
+    /*
     printf("Testing string_buffer usage\n");
 
     string_buffer * str_buf = create_string_buffer();
@@ -38,6 +39,7 @@ int main(int argc , char* argv[] , char* envp[]) {
     }
 
     destroy_string_buffer(&str_buf);
+    */
 
     return 0;
 }
