@@ -8,9 +8,11 @@
 #define BUF_MAX_SIZE 512
 
 void controlhandler(int signo);
+void exithandler(int signo);
 int main(int argc, char* argv[]){
   printf("Try to Crtl C \n");
   signal(SIGINT,controlhandler);
+  signal(SIGUSR1,exithandler);
   pid_t pid;
   while(1)
   {
@@ -39,8 +41,12 @@ void controlhandler(int signo){
     printf("Ok program will not stop \n");
   } else {
     printf("Program will stop \n");
-    kill(0,SIGTERM);
+    kill(0,SIGUSR1);
     exit(0);
   }
 
+}
+void exithandler(int signo){
+  exit(0);
+}
 }
