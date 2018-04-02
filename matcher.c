@@ -28,11 +28,18 @@ bool is_pattern_in_line(u_char mask, const char * line, const char * pattern) {
 	if(W_FLAG_ACTIVATED(mask)) {
 	    //Match must not have any non whitespace character before or after itself
 	    char * match = (*search_func)(line, pattern);
-	    if(match == NULL) {
-		return false;
-	    }
 
-	    return ((*(match + strlen(pattern)) == '\0' || *(match + strlen(pattern)) == ' ') && (match == line || *(match - 1) == ' '));
+		//Because of the ability for there to be several matches we must continue to test the line
+		while(match != NULL) {
+			if((match == line || *(match - 1) == ' ') && (*(match + strlen(pattern)) == '\0' || *(match + strlen(pattern)) == ' ' || *(match + strlen(pattern)) == '\n')) {
+				return true;
+			}
+			
+			//Updating match
+			match = (*search_func)(match + 1, pattern);
+		}
+
+		return false;
 	} else {
 	    return (*search_func)(line, pattern) != NULL;
 	}
@@ -81,9 +88,20 @@ int grep_matcher(u_char mask, const char * file_path, const char * pattern) {
 			    n_matches++;
 			} else {
 			    //Otherwise we want full output
-			    asprintf(&output_buf, COLOR_BLUE "%s:" COLOR_RESET "%s", file_path, line_str);
-			    append_string(str_buf, output_buf);
-			    free(output_buf);
+				//Note: No need to append '\n' because the original line already has one at the end
+				if(R_FLAG_ACTIVATED(mask)) {
+			    	if(asprintf(&output_buf, COLOR_BLUE "%s:" COLOR_RESET "%s", file_path, line_str) == -1) {
+						fprintf(stderr, "Error in asprintf, inside grep_matcher!\n");
+						return -3;
+					}
+				} else {
+					if(asprintf(&output_buf, "%s", line_str) == -1) {
+						fprintf(stderr, "Error in asprintf, inside grep_matcher!\n");
+						return -4;
+					}
+				}
+				append_string(str_buf, output_buf);
+				free(output_buf);
 			}
 
 		}
@@ -94,11 +112,25 @@ int grep_matcher(u_char mask, const char * file_path, const char * pattern) {
 	//Printing output
 
 	if(C_FLAG_ACTIVATED(mask)) {
-	    asprintf(&output_buf, "%d\n", n_matches);
-	    append_string(str_buf, output_buf);
+		if(R_FLAG_ACTIVATED(mask)) {
+			if(asprintf(&output_buf, COLOR_BLUE "%s:" COLOR_RESET "%d\n", file_path, n_matches) == -1) {
+				fprintf(stderr, "Error in asprintf, inside grep_matcher!\n");
+				return -5;
+			}
+		} else {
+			if(asprintf(&output_buf, "%d\n", n_matches) == -1) {
+				fprintf(stderr, "Error in asprintf, inside grep_matcher!\n");
+				return -6;
+			}
+		}
+	    
+		append_string(str_buf, output_buf);
 	    free(output_buf);
 	} else if(L_FLAG_ACTIVATED(mask) && n_matches > 0) {
-	    asprintf(&output_buf, "%s\n", file_path);
+	    if(asprintf(&output_buf, "%s\n", file_path) == -1) {
+			fprintf(stderr, "Error in asprintf, inside grep_matcher!\n");
+			return -7;
+		}
 	    append_string(str_buf, output_buf);
 	    free(output_buf);
 	}
@@ -108,7 +140,8 @@ int grep_matcher(u_char mask, const char * file_path, const char * pattern) {
 	if(str_buf->current_size > 0) {
 	    size_t n_written = write(STDOUT_FILENO, str_buf->buffer, str_buf->current_size * sizeof(*(str_buf->buffer)));
 	    if(n_written == 0) {
-		printf("Problem in write, inside grep_matcher!\n");
+			fprintf(stderr, "Problem in write, inside grep_matcher!\n");
+			return -8;
 	    }
 	}
 	//"Cleaning up"

@@ -34,6 +34,7 @@ string_buffer * create_sized_string_buffer(size_t starting_size);
 /**
  * Appends the given string to the given string_buffer.
  * Returns the number of characters appended or negative in case of error.
+ * The contents of the string append_str are actually copied into the passed string_buffer, so it can be deallocated safely
  * If append_str is NULL or empty, nothing is done
  * string_buffer * should be deallocated using the 'destroy_string_buffer' function and allocated using the 'create_string_buffer' functions
  */
