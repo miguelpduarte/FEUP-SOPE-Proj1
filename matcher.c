@@ -14,18 +14,25 @@
 
 
 bool is_pattern_in_line(u_char mask, const char * line, const char * pattern) {
-	if(W_FLAG_ACTIVATED(mask)) {
-		//TODO
-		return false;
-	}
+	//Using function pointer to simplify code
+	char * (*search_func) (const char *, const char *);
 
 	if(I_FLAG_ACTIVATED(mask)) {
-		//Case independent search
-		return strcasestr(line, pattern) != NULL;
+	    //Case independent search
+	    search_func = strcasestr;
 	} else {
-		//Case dependent search
-		return strstr(line, pattern) != NULL;
+	    //Case dependent search
+	    search_func = strstr;
 	}
+
+	if(W_FLAG_ACTIVATED(mask)) {
+	    //TODO
+	    return false;
+	} else {
+	    return (*search_func)(line, pattern) != NULL;
+	}
+
+	
 }
 
 int grep_matcher(u_char mask, const char * file_path, const char * pattern) {

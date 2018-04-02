@@ -9,7 +9,7 @@
 
 void controlhandler(int signo);
 void exithandler(int signo);
-int main(int argc, char* argv[]){
+int main_street(int argc, char* argv[]){
   printf("Try to Crtl C \n");
   signal(SIGINT,controlhandler);
   signal(SIGUSR1,exithandler);
@@ -46,7 +46,7 @@ void controlhandler(int signo){
   }
 
 }
+
 void exithandler(int signo){
   exit(0);
-}
 }
