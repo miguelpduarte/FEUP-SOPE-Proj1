@@ -26,8 +26,13 @@ bool is_pattern_in_line(u_char mask, const char * line, const char * pattern) {
 	}
 
 	if(W_FLAG_ACTIVATED(mask)) {
-	    //TODO
-	    return false;
+	    //Match must not have any non whitespace character before or after itself
+	    char * match = (*search_func)(line, pattern);
+	    if(match == NULL) {
+		return false;
+	    }
+
+	    return ((*(match + strlen(pattern)) == '\0' || *(match + strlen(pattern)) == ' ') && (match == line || *(match - 1) == ' '));
 	} else {
 	    return (*search_func)(line, pattern) != NULL;
 	}
