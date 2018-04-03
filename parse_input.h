@@ -15,6 +15,7 @@ typedef unsigned long u_long;
 #define C_FLAG  BIT(3)
 #define W_FLAG  BIT(4)
 #define R_FLAG  BIT(5)
+#define ERR_FLAG  BIT(7)
 
 /* Flag-Verification Macros */
 #define I_FLAG_ACTIVATED(mask)  ((mask) & (I_FLAG) ? (1) : (0))
@@ -23,6 +24,7 @@ typedef unsigned long u_long;
 #define C_FLAG_ACTIVATED(mask)  ((mask) & (C_FLAG) ? (1) : (0))
 #define W_FLAG_ACTIVATED(mask)  ((mask) & (W_FLAG) ? (1) : (0))
 #define R_FLAG_ACTIVATED(mask)  ((mask) & (R_FLAG) ? (1) : (0))
+#define ERR_FLAG_ACTIVATED(mask)  ((mask) & (ERR_FLAG) ? (1) : (0))
 
 /*
  *  Checks for flags in the 'strings' array and fills 'mask' with the flags that were set.

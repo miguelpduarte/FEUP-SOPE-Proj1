@@ -3,28 +3,39 @@
 
 
 u_char parse_input(int num_strings , char* strings[]) {
-    u_int i;
+    u_int i, j;
     u_char mask = 0;
     
     // Fill the mask with the specified flags
     for (i=0 ; i<num_strings ; i++) {
-        if (strncmp(strings[i] , "-i" , 2) == 0) {
-            mask |= I_FLAG;
-        }
-        else if (strncmp(strings[i], "-l" , 2) == 0) {
-            mask |= L_FLAG;
-        }
-        else if (strncmp(strings[i] , "-n" , 2) == 0) {
-            mask |= N_FLAG;
-        }
-        else if (strncmp(strings[i] , "-c" , 2) == 0) {
-            mask |= C_FLAG;
-        }
-        else if (strncmp(strings[i] , "-w" , 2) == 0) {
-            mask |= W_FLAG;
-        }
-        else if (strncmp(strings[i] , "-r" , 2) == 0) {
-            mask |= R_FLAG;
+        if (strncmp(strings[i], "-", 1) == 0) {
+        
+            for (j=1 ; j<strlen(strings[i]) ; j++) {
+                switch(strings[i][j]) {
+                case 'i':
+                    mask |= I_FLAG;
+                    break;
+                case 'l':
+                    mask |= L_FLAG;
+                    break;
+                case 'n':
+                    mask |= N_FLAG;
+                    break;
+                case 'c':
+                    mask |= C_FLAG;
+                    break;
+                case 'w':
+                    mask |= W_FLAG;
+                    break;
+                case 'r':
+                    mask |= R_FLAG;
+                    break;  
+                default:
+                    mask |= ERR_FLAG;
+                    return mask;
+                }
+            }
+            
         }
     }
     
