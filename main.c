@@ -4,12 +4,18 @@
 #include "string_buffer.h"
 #include <string.h>
 
+void print_usage(FILE* stream);
+
 int main(int argc , char* argv[] , char* envp[]) {
 
     /* Parsing Mask Testing */
     u_char mask = parse_input(argc , argv);
     
-    printf("\nMask: %X\n\n" , mask);
+    if (ERR_FLAG_ACTIVATED(mask)) {
+        fprintf(stderr, "Invalid option.\n\n");
+        print_usage(stderr);
+        return 1;
+    }
     
     printf("-i flag is active: %d\n" , I_FLAG_ACTIVATED(mask));
     printf("-l flag is active: %d\n" , L_FLAG_ACTIVATED(mask));
@@ -42,4 +48,15 @@ int main(int argc , char* argv[] , char* envp[]) {
     */
 
     return 0;
+}
+
+void print_usage(FILE* stream) {
+    fprintf(stream, "usage: simgrep [options] pattern [file/dir]\n");
+    fprintf(stream, "\noptions:");
+    fprintf(stream, "\n-i    ignore case sensitivity in pattern to find");
+    fprintf(stream, "\n-l    display only the files names where the pattern is present");
+    fprintf(stream, "\n-n    indicate line numbering within the file where the pattern is present");
+    fprintf(stream, "\n-c    indicate in how many lines the pattern is present");
+    fprintf(stream, "\n-w    select only lines containing matches that form whole  words");
+    fprintf(stream, "\n-r    search the pattern recursively in all the files under the given directory\n\n");
 }
