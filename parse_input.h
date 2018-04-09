@@ -44,7 +44,4 @@ int is_path_regular_file(const char* file_path);
  */
 int is_path_directory(const char* file_path);
 
-
-
-
 #endif  /* _PARSE_INPUT_H_ */
