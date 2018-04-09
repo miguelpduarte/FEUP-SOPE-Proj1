@@ -13,22 +13,25 @@ void termination_handler(int signo) {
   //Halting child processes
   kill(0, SIGUSR2);
 
-  char buffer[BUF_MAX_SIZE];
+  char * buffer = NULL;
   int answer = 0;
+  size_t n;
 
   do {
-    printf("\n Are you sure you want to terminate the program? (Y/N) \n");
-    scanf("%s",buffer);
+    printf("\nAre you sure you want to terminate the program? (Y/N)\n");
+    getline(&buffer, &n, stdin);
 
-    if(strncasecmp(buffer, "Y", 1) != 0) {
+    if(strncasecmp(buffer, "Y", 1) == 0) {
         answer = 1;
         break;
-    } else if(strncasecmp(buffer, "N", 1) != 0) {
+    } else if(strncasecmp(buffer, "N", 1) == 0) {
         answer = 0;
         break;
     }
 
   } while(1);
+
+  free(buffer);
 
   //If anwser was yes, exit and cascade kill
   if(answer == 1) {
@@ -59,6 +62,7 @@ void install_main_handler() {
   int_action.sa_flags = 0;
   sigemptyset(&(int_action.sa_mask));
   sigaddset(&(int_action.sa_mask), SIGINT);
+  sigaddset(&(int_action.sa_mask), SIGUSR1);
   sigaddset(&(int_action.sa_mask), SIGUSR2);
   sigaction(SIGINT, &int_action, NULL);
 
@@ -67,6 +71,12 @@ void install_main_handler() {
   usr1_action.sa_flags = 0;
   sigemptyset(&(usr1_action.sa_mask));
   sigaction(SIGUSR1, &usr1_action, NULL);
+
+  struct sigaction usr2_ign_action;
+  usr2_ign_action.sa_handler = SIG_IGN;
+  usr2_ign_action.sa_flags = 0;
+  sigemptyset(&(usr2_ign_action.sa_mask));
+  sigaction(SIGUSR2, &usr2_ign_action, NULL);
 }
 
 void install_child_handler() {
