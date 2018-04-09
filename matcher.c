@@ -48,6 +48,11 @@ bool is_pattern_in_line(u_char mask, const char * line, const char * pattern) {
 }
 
 int grep_matcher(u_char mask, const char * file_path, const char * pattern) {
+	if(file_path == NULL || pattern == NULL) {
+		fprintf(stderr, "Pattern or file was null in grep matcher call!\n");
+		return 1;
+	}
+
 	FILE * file = fopen(file_path, "r");
 	
 	if(file == NULL) {

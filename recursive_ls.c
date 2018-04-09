@@ -43,7 +43,7 @@ void recursive_ls(char path[]) {
             // Call 'ls' in the directory, if it isn't . (current directory) and if it isn't .. (previous directory)
             if (strncmp(dirent_ptr->d_name , "." , 1) != 0 &&
                 strncmp(dirent_ptr->d_name , "..", 2) != 0) {
-             
+            
                 recursive_ls(entry_name);   
             }
         }

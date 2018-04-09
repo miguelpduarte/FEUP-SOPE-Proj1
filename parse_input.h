@@ -32,5 +32,7 @@ typedef unsigned long u_long;
  */
 u_char parse_input(int num_strings , char** strings);
 
+int get_file_and_pattern(int argc, char * argv[], char ** file_path, char ** pattern);
+
 
 #endif  /* _PARSE_INPUT_H_ */

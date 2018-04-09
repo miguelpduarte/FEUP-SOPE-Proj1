@@ -1,12 +1,18 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include "sighandlers.h"
 #include "parse_input.h"
 #include "matcher.h"
-#include "string_buffer.h"
 #include <string.h>
 
 void print_usage(FILE* stream);
 
-int main(int argc , char* argv[] , char* envp[]) {
+int main(int argc, char* argv[], char* envp[]) {
+
+    if(argc == 1) {
+        print_usage(stdout);
+        return 0;
+    }
 
     /* Parsing Mask Testing */
     u_char mask = parse_input(argc , argv);
@@ -16,7 +22,7 @@ int main(int argc , char* argv[] , char* envp[]) {
         print_usage(stderr);
         return 1;
     }
-    
+
     printf("-i flag is active: %d\n" , I_FLAG_ACTIVATED(mask));
     printf("-l flag is active: %d\n" , L_FLAG_ACTIVATED(mask));
     printf("-n flag is active: %d\n" , N_FLAG_ACTIVATED(mask));
@@ -24,28 +30,27 @@ int main(int argc , char* argv[] , char* envp[]) {
     printf("-w flag is active: %d\n" , W_FLAG_ACTIVATED(mask));
     printf("-r flag is active: %d\n\n" , R_FLAG_ACTIVATED(mask));
 
-    printf("Testing simple matching of 'test' in file 'test_files/test.txt')\n");
+    char * file_path = NULL;
+    char * pattern = NULL;
+
+    if(get_file_and_pattern(argc, argv, &file_path, &pattern) != 0) {
+        printf("Error in getting file and pattern\n");
+        exit(1);
+    }
+
+    install_main_handler();
+
+    if(R_FLAG_ACTIVATED(mask)) {
+        printf("AAAAAAAAAAAAAAAAAAAAAAH\n\n");
+        exit(1);
+    } else {
+        printf("Testing simple matching of '%s' in file '%s')\n", pattern, file_path);
         
-    if(grep_matcher(mask, "test_files/test.txt", "test") != 0) {
-	printf("Error in grep_matcher call!\n");
-	return 1;
+        if(grep_matcher(mask, file_path, pattern) != 0) {
+            printf("Error in grep_matcher call!\n");
+            return 1;
+        }
     }
-    
-    /*
-    printf("Testing string_buffer usage\n");
-
-    string_buffer * str_buf = create_string_buffer();
-    int i;
-    for(i = 0; i < 11; ++i) {
-	append_string(str_buf, "a");
-	if(i == 5 || i == 8) {
-	    append_string(str_buf, "wow");
-	}
-	printf("current_size:%zu  allocated_size:%zu text:%s\n", str_buf->current_size, str_buf->allocated_size, str_buf->buffer);
-    }
-
-    destroy_string_buffer(&str_buf);
-    */
 
     return 0;
 }
