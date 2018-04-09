@@ -155,4 +155,73 @@ int grep_matcher(u_char mask, const char * file_path, const char * pattern) {
 	return 0;
 }
 
+int grep_matcher_stdin(u_char mask, const char * pattern) {
+	if(pattern == NULL) {
+		fprintf(stderr, "Pattern was null in grep matcher from stdin call!\n");
+		return 1;
+	}
 
+	string_buffer * str_buf = create_string_buffer();
+	if(str_buf == NULL) {
+	    printf("Error creating string buffer!\n");
+	    return -2;
+	}
+
+	ssize_t n_read;
+	size_t len = 0;
+	char * line_str = NULL;
+	u_int n_matches = 0;
+
+	while((n_read = getline(&line_str, &len, stdin)) != -1) {
+		//Attempt to match
+		if(is_pattern_in_line(mask, line_str, pattern)) {
+			//Match ocurrred according to current matching flags (i or w)
+			
+			//Displaying output depending on flags
+			if(L_FLAG_ACTIVATED(mask)) {
+			    //This flag only needs to know if there is 1 occurrence
+			    n_matches++;
+			    break;
+			}
+
+			if(C_FLAG_ACTIVATED(mask)) {
+			    //This flag only needs to count the number of line ocurrences per file
+			    n_matches++;
+			} else {
+			    //Otherwise we want full output (in this case only the line)
+				//Note: No need to append '\n' because the original line already has one at the end
+				append_string(str_buf, line_str);
+			}
+
+		}
+	}
+
+	free(line_str);
+
+	//Printing output
+
+	if(C_FLAG_ACTIVATED(mask)) {
+		char * output_buf = NULL;
+		if(asprintf(&output_buf, "%d\n", n_matches) == -1) {
+			fprintf(stderr, "Error in asprintf, inside grep_matcher!\n");
+			return -6;
+		}
+		append_string(str_buf, output_buf);
+	    free(output_buf);
+	} else if(L_FLAG_ACTIVATED(mask) && n_matches > 0) {
+	    append_string(str_buf, COLOR_BLUE "(standard input)" COLOR_RESET);
+	}
+
+	//Everything went as expected
+	//Writing output if there is any to write
+	if(str_buf->current_size > 0) {
+	    size_t n_written = write(STDOUT_FILENO, str_buf->buffer, str_buf->current_size * sizeof(*(str_buf->buffer)));
+	    if(n_written == 0) {
+			fprintf(stderr, "Problem in write, inside grep_matcher!\n");
+			return -8;
+	    }
+	}
+	//"Cleaning up"
+	destroy_string_buffer(&str_buf);
+	return 0;
+}

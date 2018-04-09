@@ -10,4 +10,6 @@
  */
 int grep_matcher(u_char mask, const char * file_path, const char * pattern);
 
+int grep_matcher_stdin(u_char mask, const char * pattern);
+
 #endif /* _MATCHER_H_ */
