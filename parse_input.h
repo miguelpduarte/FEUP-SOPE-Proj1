@@ -30,9 +30,21 @@ typedef unsigned long u_long;
  *  Checks for flags in the 'strings' array and fills 'mask' with the flags that were set.
  *  Return: A mask with the flags that were set.
  */
-u_char parse_input(int num_strings , char** strings);
+u_char parse_input(int num_strings , char** strings, int* lastFlagIndex);
 
-int get_file_and_pattern(int argc, char * argv[], char ** file_path, char ** pattern);
+/*
+ *  Checks if a file is a regular file or not.
+ *  Return: True if is a regular file, false otherwise
+ */
+int is_path_regular_file(const char* file_path);
+
+/*
+ *  Checks if a file is a directory or not.
+ *  Return: True if is a directory, false otherwise
+ */
+int is_path_directory(const char* file_path);
+
+
 
 
 #endif  /* _PARSE_INPUT_H_ */

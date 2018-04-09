@@ -5,6 +5,11 @@
 #include "matcher.h"
 #include <string.h>
 
+#define INVALID_FLAGS   1
+#define MISSING_PATTERN 2
+#define MISSING_PATH    3
+#define INVALID_PATH    4
+
 void print_usage(FILE* stream);
 
 int main(int argc, char* argv[], char* envp[]) {
@@ -14,42 +19,68 @@ int main(int argc, char* argv[], char* envp[]) {
         return 0;
     }
 
-    /* Parsing Mask Testing */
-    u_char mask = parse_input(argc , argv);
+    // Parsing Mask Testing
+    int lastFlagIndex;
+    u_char mask = parse_input(argc, argv, &lastFlagIndex);
+    int pattern_index = lastFlagIndex + 1;
+    int file_path_index = lastFlagIndex + 2;
     
+    // Invalid Flag was found by input parser
     if (ERR_FLAG_ACTIVATED(mask)) {
         fprintf(stderr, "Invalid option.\n\n");
         print_usage(stderr);
-        return 1;
+        return INVALID_FLAGS;
+    }
+    
+    // Check if user entered a pattern 
+    if (pattern_index >= argc) {
+        fprintf(stderr, "Pattern missing.\n\n");
+        print_usage(stderr);
+        return MISSING_PATTERN;
     }
 
-    printf("-i flag is active: %d\n" , I_FLAG_ACTIVATED(mask));
-    printf("-l flag is active: %d\n" , L_FLAG_ACTIVATED(mask));
-    printf("-n flag is active: %d\n" , N_FLAG_ACTIVATED(mask));
-    printf("-c flag is active: %d\n" , C_FLAG_ACTIVATED(mask));
-    printf("-w flag is active: %d\n" , W_FLAG_ACTIVATED(mask));
-    printf("-r flag is active: %d\n\n" , R_FLAG_ACTIVATED(mask));
-
-    char * file_path = NULL;
-    char * pattern = NULL;
-
-    if(get_file_and_pattern(argc, argv, &file_path, &pattern) != 0) {
-        printf("Error in getting file and pattern\n");
-        exit(1);
-    }
-
+    // Install the main process interrupt handlers
     install_main_handler();
-
-    if(R_FLAG_ACTIVATED(mask)) {
-        printf("AAAAAAAAAAAAAAAAAAAAAAH\n\n");
-        exit(1);
-    } else {
-        printf("Testing simple matching of '%s' in file '%s')\n", pattern, file_path);
-        
-        if(grep_matcher(mask, file_path, pattern) != 0) {
-            printf("Error in grep_matcher call!\n");
-            return 1;
+    
+    
+    if (R_FLAG_ACTIVATED(mask)) {
+        // When the -r flag is specified, can not read from stdin, a file/directory must be specified.
+        if (file_path_index >= argc) {
+            fprintf(stderr, "Please enter a directory path when specifying the '-r' flag.\n\n");
+            print_usage(stderr);
+            return MISSING_PATH;
         }
+    
+        if (is_path_regular_file(argv[file_path_index])) {
+            // Unset -r flag
+            mask &= ~R_FLAG;
+            // TODO RECURSIVE GREP
+        }
+        else if (is_path_directory(argv[file_path_index])) {
+            // TODO RECURSIVE GREP
+        }
+        else {
+            fprintf(stderr, "Path does not correspond to a file/directory.\n\n");
+            return INVALID_PATH;
+        }
+        
+        
+    }
+    else {
+        /* Check if the user entered a file path. If not, read from stdin */
+        if (file_path_index >= argc) {
+            return grep_matcher_stdin(mask, argv[pattern_index]);
+        }
+        
+        // Verify if file is a regular file or a directory
+        else if (!is_path_regular_file(argv[file_path_index])) {    
+            fprintf(stderr, "Path must correspond to a regular file.\n\n");
+            return INVALID_PATH;
+        }
+        else {
+            return grep_matcher(mask, argv[file_path_index], argv[pattern_index]);
+        }
+        
     }
 
     return 0;
