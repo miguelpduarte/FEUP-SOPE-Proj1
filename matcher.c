@@ -1,6 +1,5 @@
 #include "matcher.h"
 #include "parse_input.h"
-#define _GNU_SOURCE
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
