@@ -15,7 +15,6 @@ void recursive_grep(unsigned char mask, const char* path, const char* pattern) {
     struct dirent* dirent_ptr;
     struct stat entry_info;
     char entry_name[MAX_ENTRY_NAME_SIZE];
-    //char* type_of_entry;
     
     // Open the directory
     if ( (dir_ptr = opendir(path)) == NULL) {
@@ -51,7 +50,6 @@ void recursive_grep(unsigned char mask, const char* path, const char* pattern) {
                 writeinLog(buffer);
                 free(buffer);
                 exit(grep_matcher(mask, entry_name, pattern));
-                exit(0);
             }
         }
         else if (S_ISDIR(entry_info.st_mode)) {

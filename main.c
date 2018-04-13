@@ -150,9 +150,7 @@ int recursive_explorer(u_char mask, const char* initial_path, const char* patter
         writeinLog(buffer);
         free(buffer);
         install_child_handler();
-        int r_grep_return = 69;
         recursive_grep(mask, initial_path_no_dash, pattern);
-        //Using exit so that no child process returns to main
-        exit(r_grep_return);
+        exit(0);
     }
 }
