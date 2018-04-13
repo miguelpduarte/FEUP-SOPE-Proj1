@@ -4,6 +4,7 @@
 #include <string.h>
 #include <dirent.h>
 #include <sys/types.h>
+#include <sys/wait.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include "matcher.h"
@@ -15,6 +16,7 @@ void recursive_grep(unsigned char mask, const char* path, const char* pattern) {
     struct dirent* dirent_ptr;
     struct stat entry_info;
     char entry_name[MAX_ENTRY_NAME_SIZE];
+    u_int process_counter = 0;
     
     // Open the directory
     if ( (dir_ptr = opendir(path)) == NULL) {
@@ -35,7 +37,6 @@ void recursive_grep(unsigned char mask, const char* path, const char* pattern) {
         
         // Check which type of entry it is
         if (S_ISREG(entry_info.st_mode)) {
-            //type_of_entry = "regular";
             //Running text matcher in another process
             int fork_result = fork();
             if(fork_result < 0) {
@@ -51,10 +52,12 @@ void recursive_grep(unsigned char mask, const char* path, const char* pattern) {
                 free(buffer);
                 exit(grep_matcher(mask, entry_name, pattern));
             }
+            else {
+                //Parent
+                process_counter++;
+            }
         }
-        else if (S_ISDIR(entry_info.st_mode)) {
-            //type_of_entry = "directory";
-            
+        else if (S_ISDIR(entry_info.st_mode)) {            
             // Call 'ls' in the directory, if it isn't . (current directory) and if it isn't .. (previous directory)
             if (strncmp(dirent_ptr->d_name , "." , 1) != 0 &&
                 strncmp(dirent_ptr->d_name , "..", 2) != 0) {
@@ -75,18 +78,33 @@ void recursive_grep(unsigned char mask, const char* path, const char* pattern) {
                     free(buffer);
                     exit(0);
                 }
+                else {
+                    //Parent
+                    process_counter++;
+                }
             }
         }
-        /*
-        else {
-            type_of_entry = "other";
-        }
-        */
-        
-        // Print the entry info.
-        //fprintf(stdout , "%-80s - %s\n" , entry_name , type_of_entry);
     }
     
     closedir(dir_ptr);
+    
+    // Wait for all the created processes to return
+    int return_value, wait_return;
+    while(process_counter > 0) {
+        wait_return = wait(&return_value);
+        
+        if (wait_return == -1) {
+            exit(ERROR_WAIT);
+        }
+        else {
+            if (return_value != 0) {
+                exit(return_value);
+            }
+            else {
+                process_counter--;
+            }
+        } 
+    }
+    
     exit(0);
 }

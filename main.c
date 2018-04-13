@@ -17,6 +17,7 @@
 #define MISSING_PATH    3
 #define INVALID_PATH    4
 #define FORK_FAILURE    5
+#define WAIT_FAILURE    6
 
 void print_usage(FILE* stream);
 int recursive_explorer(u_char mask, const char* file_path, const char* pattern);
@@ -127,22 +128,23 @@ int recursive_explorer(u_char mask, const char* initial_path, const char* patter
     }
 
     if(fork_result > 0) {
+        //Parent
         char * buff = NULL;
         asprintf(&buff, "Created process with pid %.8d (parent)", fork_result);
         writeinLog(buff);
         free(buff);
 
-        sleep(1);
-
-        //Parent
-        siginfo_t info;
-        while (waitid(P_ALL, -1, &info, WEXITED) != -1) {
-            char * buffer = NULL;
-            asprintf(&buffer, "Process with pid %.8d terminated with code %d", info.si_pid, info.si_status);
-            writeinLog(buffer);
-            free(buffer);
+        int return_value, wait_return;
+        
+        wait_return = waitpid(fork_result, &return_value, 0);
+        
+        if (wait_return == -1) {
+            fprintf(stderr, "waitpid() call failed.\n");
+            return WAIT_FAILURE;
         }
-        return 0;
+        else {
+            return return_value;
+        }
     } else {
         //Child
         char * buffer = NULL;
