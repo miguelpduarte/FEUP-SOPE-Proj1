@@ -6,6 +6,7 @@
 #define ERROR_OPENING_DIRECTORY 2
 #define ERROR_LSTAT_CALL 3
 #define ERROR_FORK 4
+#define ERROR_WAIT 5
 
 
 /*
