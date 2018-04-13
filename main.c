@@ -8,6 +8,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/wait.h>
+#include <sys/types.h>
 
 #define BUFFER_SIZE     32
 
@@ -126,18 +127,28 @@ int recursive_explorer(u_char mask, const char* initial_path, const char* patter
     }
 
     if(fork_result > 0) {
+        char * buff = NULL;
+        asprintf(&buff, "Created process with pid %.8d (parent)", fork_result);
+        writeinLog(buff);
+        free(buff);
+
+        sleep(1);
+
         //Parent
-        int status = 0;
-        pid_t wpid;
-        while ((wpid = wait(&status)) > 0) {
+        siginfo_t info;
+        while (waitid(P_ALL, -1, &info, WEXITED) != -1) {
             char * buffer = NULL;
-            asprintf(&buffer, "Process with pid %.8d terminated with code %d", wpid, status);
+            asprintf(&buffer, "Process with pid %.8d terminated with code %d", info.si_pid, info.si_status);
             writeinLog(buffer);
             free(buffer);
         }
         return 0;
     } else {
         //Child
+        char * buffer = NULL;
+        asprintf(&buffer, "Created process with pid %.8d (child)", getpid());
+        writeinLog(buffer);
+        free(buffer);
         install_child_handler();
         int r_grep_return = 69;
         recursive_grep(mask, initial_path_no_dash, pattern);

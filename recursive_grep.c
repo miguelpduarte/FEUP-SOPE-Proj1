@@ -7,7 +7,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include "matcher.h"
-
+#include "logfile.h"
 
 void recursive_grep(unsigned char mask, const char* path, const char* pattern) {
 
@@ -46,6 +46,10 @@ void recursive_grep(unsigned char mask, const char* path, const char* pattern) {
             //Parent should just continue exploring directory as usual
             if(fork_result == 0) {
                 //Child
+                char * buffer = NULL;
+                asprintf(&buffer, "Created process with pid %.8d (child-rgrep-regfile)", getpid());
+                writeinLog(buffer);
+                free(buffer);
                 exit(grep_matcher(mask, entry_name, pattern));
                 exit(0);
             }
@@ -67,6 +71,10 @@ void recursive_grep(unsigned char mask, const char* path, const char* pattern) {
                 if(fork_result == 0) {
                     //Child
                     recursive_grep(mask, entry_name, pattern);
+                    char * buffer = NULL;
+                    asprintf(&buffer, "Created process with pid %.8d (child-rgrep-dir)", getpid());
+                    writeinLog(buffer);
+                    free(buffer);
                     exit(0);
                 }
             }
