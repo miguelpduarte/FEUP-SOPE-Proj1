@@ -16,7 +16,7 @@ OBJS=$(subst .c,.o,$(SRCS))
 all: main
 
 main: $(OBJS)
-	$(CC) $(LDFLAGS) -o bin/main.out $(OBJS) $(LDLIBS)
+	$(CC) $(LDFLAGS) -o simgrep $(OBJS) $(LDLIBS)
 
 depend: $(DEPFILE)
 
