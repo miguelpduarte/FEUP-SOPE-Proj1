@@ -5,13 +5,17 @@
 #include <string.h>
 #include <stdbool.h>
 #include <unistd.h>
+#include "logfile.h"
 
 #define BUF_MAX_SIZE 512
 
 void termination_handler(int signo) {
+
+  writeinLog("RECEBIDO SIGINT");
   
   //Halting child processes
-  kill(0, SIGUSR2);
+  writeinLog("SINAL TSTP para process group (pause)");
+  kill(0, SIGTSTP);
 
   char * buffer = NULL;
   int answer = 0;
@@ -35,11 +39,13 @@ void termination_handler(int signo) {
 
   //If anwser was yes, exit and cascade kill
   if(answer == 1) {
+    writeinLog("SINAL USR1 para process group (terminate)");
     kill(0, SIGUSR1);
     exit(0);
   } else {
     //If answer was no, "unpause" child processes
-    kill(0, SIGUSR2);
+    writeinLog("SINAL CONT para process group (unpause)");
+    kill(0, SIGCONT);
   }
 }
 
@@ -64,6 +70,8 @@ void install_main_handler() {
   sigaddset(&(int_action.sa_mask), SIGINT);
   sigaddset(&(int_action.sa_mask), SIGUSR1);
   sigaddset(&(int_action.sa_mask), SIGUSR2);
+  sigaddset(&(int_action.sa_mask), SIGTSTP);
+  sigaddset(&(int_action.sa_mask), SIGCONT);
   sigaction(SIGINT, &int_action, NULL);
 
   struct sigaction usr1_action;
@@ -72,11 +80,17 @@ void install_main_handler() {
   sigemptyset(&(usr1_action.sa_mask));
   sigaction(SIGUSR1, &usr1_action, NULL);
 
-  struct sigaction usr2_ign_action;
-  usr2_ign_action.sa_handler = SIG_IGN;
-  usr2_ign_action.sa_flags = 0;
-  sigemptyset(&(usr2_ign_action.sa_mask));
-  sigaction(SIGUSR2, &usr2_ign_action, NULL);
+  struct sigaction tstp_ign_action;
+  tstp_ign_action.sa_handler = SIG_IGN;
+  tstp_ign_action.sa_flags = 0;
+  sigemptyset(&(tstp_ign_action.sa_mask));
+  sigaction(SIGTSTP, &tstp_ign_action, NULL);
+
+  struct sigaction cont_ign_action;
+  cont_ign_action.sa_handler = SIG_IGN;
+  cont_ign_action.sa_flags = 0;
+  sigemptyset(&(cont_ign_action.sa_mask));
+  sigaction(SIGCONT, &cont_ign_action, NULL);
 }
 
 void install_child_handler() {
@@ -86,12 +100,15 @@ void install_child_handler() {
   sigemptyset(&(int_ign_action.sa_mask));
   sigaction(SIGINT, &int_ign_action, NULL);
 
-  struct sigaction pause_action;
-  pause_action.sa_handler = pausing_handler;
-  pause_action.sa_flags = 0;
-  sigfillset(&(pause_action.sa_mask));
-  sigdelset(&(pause_action.sa_mask), SIGTERM);
-  sigdelset(&(pause_action.sa_mask), SIGUSR1);
-  sigdelset(&(pause_action.sa_mask), SIGUSR2);
-  sigaction(SIGUSR2, &pause_action, NULL);
+  struct sigaction tstp_action;
+  tstp_action.sa_handler = SIG_DFL;
+  tstp_action.sa_flags = 0;
+  sigemptyset(&(tstp_action.sa_mask));
+  sigaction(SIGTSTP, &tstp_action, NULL);
+
+  struct sigaction cont_action;
+  cont_action.sa_handler = SIG_DFL;
+  cont_action.sa_flags = 0;
+  sigemptyset(&(cont_action.sa_mask));
+  sigaction(SIGCONT, &cont_action, NULL);
 }

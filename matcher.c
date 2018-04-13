@@ -6,6 +6,7 @@
 #include <stdbool.h>
 #include <unistd.h>
 #include "string_buffer.h"
+#include "logfile.h"
 
 #define COLOR_RESET   "\x1b[0m"
 #define COLOR_RED     "\x1b[31m"
@@ -51,6 +52,10 @@ int grep_matcher(u_char mask, const char * file_path, const char * pattern) {
 		fprintf(stderr, "Pattern or file was null in grep matcher call!\n");
 		return 1;
 	}
+
+	char file_open_description[64];
+	snprintf(file_open_description, 64, "ABERTO %s", file_path);
+	writeinLog(file_open_description);
 
 	FILE * file = fopen(file_path, "r");
 	
@@ -151,6 +156,10 @@ int grep_matcher(u_char mask, const char * file_path, const char * pattern) {
 	//"Cleaning up"
 	destroy_string_buffer(&str_buf);
 	fclose(file);
+
+	char file_close_description[64];
+	snprintf(file_close_description, 64, "FECHADO %s", file_path);
+	writeinLog(file_close_description);
 	return 0;
 }
 

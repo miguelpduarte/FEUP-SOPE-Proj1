@@ -3,7 +3,13 @@
 #include "sighandlers.h"
 #include "parse_input.h"
 #include "matcher.h"
+#include "logfile.h"
+#include "recursive_grep.h"
 #include <string.h>
+#include <unistd.h>
+#include <sys/wait.h>
+
+#define BUFFER_SIZE     32
 
 #define INVALID_FLAGS   1
 #define MISSING_PATTERN 2
@@ -14,12 +20,25 @@
 void print_usage(FILE* stream);
 int recursive_explorer(u_char mask, const char* file_path, const char* pattern);
 
-int main(int argc, char* argv[], char* envp[]) {
+int main(int argc, char* argv[]) {
 
     if(argc == 1) {
         print_usage(stdout);
         return 0;
     }
+
+    initLog();
+
+    char command[7 + argc * BUFFER_SIZE + (argc-1) + 1];
+    command[0] = '\0';
+    strcat(command, "COMANDO");
+    int i;
+    for(i = 0; i < argc; ++i) {
+        strncat(command, " ", 1);
+        strncat(command, argv[i], BUFFER_SIZE);
+    }
+
+    writeinLog(command);
 
     // Parsing Mask Testing
     int lastFlagIndex;
@@ -43,8 +62,7 @@ int main(int argc, char* argv[], char* envp[]) {
 
     // Install the main process interrupt handlers
     install_main_handler();
-    
-    
+        
     if (R_FLAG_ACTIVATED(mask)) {
         // When the -r flag is specified, can not read from stdin, a file/directory must be specified.
         if (file_path_index >= argc) {
@@ -79,6 +97,7 @@ int main(int argc, char* argv[], char* envp[]) {
         
     }
 
+    finishLog();
     return 0;
 }
 
@@ -94,6 +113,12 @@ void print_usage(FILE* stream) {
 }
 
 int recursive_explorer(u_char mask, const char* initial_path, const char* pattern) {
+    //Removing trailing '/'
+    char * initial_path_no_dash = strdup(initial_path);
+    if(initial_path_no_dash[strlen(initial_path_no_dash) - 1] == '/') {
+        initial_path_no_dash[strlen(initial_path_no_dash) - 1] = '\0';
+    }
+
     int fork_result = fork();
     if(fork_result < 0) {
         fprintf(stderr, "Fork failed!\n");
@@ -102,12 +127,21 @@ int recursive_explorer(u_char mask, const char* initial_path, const char* patter
 
     if(fork_result > 0) {
         //Parent
-        int child_return;
-        waitpid(fork_result, &child_return);
-        return child_return;
+        int status = 0;
+        pid_t wpid;
+        while ((wpid = wait(&status)) > 0) {
+            char * buffer = NULL;
+            asprintf(&buffer, "Process with pid %.8d terminated with code %d", wpid, status);
+            writeinLog(buffer);
+            free(buffer);
+        }
+        return 0;
     } else {
         //Child
         install_child_handler();
-        return recursive_grep();
+        int r_grep_return = 69;
+        recursive_grep(mask, initial_path_no_dash, pattern);
+        //Using exit so that no child process returns to main
+        exit(r_grep_return);
     }
 }
