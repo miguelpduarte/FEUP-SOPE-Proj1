@@ -1,5 +1,5 @@
 # FEUP-SOPE-Proj1
-First project developed for the SOPE course unit. Featured process creation via `fork`, signals, among other things.
+First project developed for the SOPE course unit. Featured process creation via `fork`, signals, among other things. The objective was implementing a simplfieid version of `grep`.
 
 ### Project Infos
 * **Date:** 2nd Year, 2nd Semester, 2017/2018
